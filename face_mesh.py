@@ -1,5 +1,9 @@
 import cv2
 import mediapipe as mp
+
+# face mesh information : https://github.com/google/mediapipe/blob/master/mediapipe/python/solutions/face_mesh_connections.py
+# build mesh information
+
 mp_drawing = mp.solutions.drawing_utils
 mp_drawing_styles = mp.solutions.drawing_styles
 mp_face_mesh = mp.solutions.face_mesh
@@ -23,6 +27,7 @@ with mp_face_mesh.FaceMesh(
     annotated_image = image.copy()
     for face_landmarks in results.multi_face_landmarks:
       print('face_landmarks:', face_landmarks)
+      
       mp_drawing.draw_landmarks(
           image=annotated_image,
           landmark_list=face_landmarks,
@@ -49,14 +54,29 @@ with mp_face_mesh.FaceMesh(
 # For webcam input:
 drawing_spec = mp_drawing.DrawingSpec(thickness=1, circle_radius=1)
 cap = cv2.VideoCapture(0)
-file = open("./face_vertex.obj", "w")
+vertex_file = open("./face_vertex.obj", "w")
+mtl_file    = open("./mtl_vertex.obj", "w")
+
+width_half = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH)) /2
+height_half = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT)) /2
+
+
 
 def write_face_feature(face_landmarks):
     num_features = 468
+    vertex_file = open("./face_vertex.obj", "w")
+    mtl_file    = open("./mtl_vertex.obj", "w")
     for index in range(0, 468):
-        w_line = "v " + str(face_landmarks.landmark[index].x) + " " + str(face_landmarks.landmark[index].y) + " " + str(face_landmarks.landmark[index].z) + "\n"
-        file.write(w_line)
+        vertex_line = "v " + str(face_landmarks.landmark[index].x) + " " + str(face_landmarks.landmark[index].y) + " " + str(face_landmarks.landmark[index].z) + "\n"
+        #vt_x = (face_landmarks.landmark[index].x + 1)* width_half 
+        #vt_y = (face_landmarks.landmark[index].y + 1)* height_half
+        mtl_line = "vt " + str(face_landmarks.landmark[index].x) + " " + str(face_landmarks.landmark[index].y) + "\n"
 
+        mtl_file.write(mtl_line)
+        vertex_file.write(vertex_line)
+
+    vertex_file.close()
+    mtl_file.close()
 
 
 with mp_face_mesh.FaceMesh(
@@ -82,7 +102,7 @@ with mp_face_mesh.FaceMesh(
     image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
     if results.multi_face_landmarks:
       for face_landmarks in results.multi_face_landmarks:
-        
+        print(face_mesh)
         write_face_feature(face_landmarks)
         mp_drawing.draw_landmarks(
             image=image,
@@ -107,6 +127,7 @@ with mp_face_mesh.FaceMesh(
             .get_default_face_mesh_iris_connections_style())
     # Flip the image horizontally for a selfie-view display.
     cv2.imshow('MediaPipe Face Mesh', cv2.flip(image, 1))
-    if cv2.waitKey(5) & 0xFF == 27:
+    #cv2.imwrite(im)
+    if cv2.waitKey(0) & 0xFF == 27:
       break
 cap.release()
