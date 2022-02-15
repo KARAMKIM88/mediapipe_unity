@@ -94,7 +94,7 @@ with mp_face_mesh.FaceMesh(
     # To improve performance, optionally mark the image as not writeable to
     # pass by reference.
     image.flags.writeable = False
-    cv2.imwrite("./uv_map.png", image)
+    
     image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
     results = face_mesh.process(image)
     
@@ -102,9 +102,10 @@ with mp_face_mesh.FaceMesh(
     image.flags.writeable = True
     image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
     if results.multi_face_landmarks:
-      for face_landmarks in results.multi_face_landmarks:
-        
+      for face_landmarks in results.multi_face_landmarks:        
         write_face_feature(face_landmarks)
+        #image = cv2.flip(image, 1)
+        cv2.imwrite("./uv_map.png", image)
         mp_drawing.draw_landmarks(
             image=image,
             landmark_list=face_landmarks,
@@ -128,8 +129,7 @@ with mp_face_mesh.FaceMesh(
             .get_default_face_mesh_iris_connections_style())
     # Flip the image horizontally for a selfie-view display.
     
-    cv2.imshow('MediaPipe Face Mesh', cv2.flip(image, 1))
-
+    cv2.imshow('MediaPipe Face Mesh', image)
     
     if cv2.waitKey(30) & 0xFF == 27:
       break
